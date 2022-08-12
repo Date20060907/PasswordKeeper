@@ -1,7 +1,8 @@
-from tkinter import *
-from random import *
-import pyperclip
 import json
+from random import *
+from tkinter import *
+
+import pyperclip
 
 
 def Gen():
@@ -32,7 +33,54 @@ def Coded():
     return ''.join(r)
 
 
+def Getter():
+    get = CodI.get()
+    psw = ''
+    web = list_accounts[Choose.curselection()[0]][0]
+    acc = list_accounts[Choose.curselection()[0]][1]
+    with open('password.json', 'r') as file:
+        b = json.load(file)
+        for i in range(len(b[web])):
+            if b[web][i][0] == acc:
+                psw = b[web][i][1]
+        sd = 0
+        were = []
+        for i in get:
+            sd += ord(i)
+        for i in psw:
+            were.append(chr(ord(i) - sd))
+        decode = ''.join(were)
+        print(decode)
+        print(get)
+
+        if get == decode[len(get) * -1:]:
+            w.config(text=f'Website: {web}')
+            l.config(text=f'Login: {acc}')
+            p.config(text=f'Password: {decode[:len(get) * -1]}')
+            pyperclip.copy(''.join(decode[:len(get) * -1]))
+
+
+def Dell():
+    web = list_accounts[Choose.curselection()[0]][0]
+    acc = list_accounts[Choose.curselection()[0]][1]
+    with open('password.json', 'r') as file:
+        b = json.load(file)
+        for i in range(len(b[web])):
+            if b[web][i][0] == acc:
+                b[web].pop(i)
+    list_accounts.clear()
+    Choose.delete(0, END)
+    for i in b:
+        for j in b[i]:
+            Choose.insert(END, i + ' – ' + j[0])
+            list_accounts.append([i, j[0]])
+    with open('password.json', 'w') as file:
+        json.dump(b, file)
+
+
 def Save():
+    global list_accounts
+    global Choose
     S1 = Website.get()
     S2 = Login.get()
     S3 = Coded()
@@ -45,7 +93,13 @@ def Save():
                 i[1] = S3
                 break
         else:
-            b[S1] += [S2, S3]
+            b[S1].append([S2, S3])
+    list_accounts = []
+    Choose.delete(0, END)
+    for i in b:
+        for j in b[i]:
+            Choose.insert(END, i + ' – ' + j[0])
+            list_accounts.append([i, j[0]])
     with open('password.json', 'w') as file:
         json.dump(b, file)
 
@@ -77,4 +131,34 @@ SaveB.grid(row=4, column=2)
 # Кнопка генерации
 Generate = Button(text='Generate Password', width=15, command=Gen)
 Generate.grid(row=3, column=2)
+# Открытие Паролей
+with open('password.json', 'r') as file:
+    b = json.load(file)
+    Choose = Listbox()
+    list_accounts = []
+    for i in b:
+        for j in b[i]:
+            Choose.insert(END, i + ' – ' + j[0])
+            list_accounts.append([i, j[0]])
+            print(list_accounts)
+Choose.grid(row=5, column=1)
+# Информация о паролях
+
+Info = Frame()
+Info.grid(row=5, column=0)
+w = Label(Info, text=f'Website:', width=20, height=2, font=('Arial', 8), anchor='w')
+w.grid(row=1)
+l = Label(Info, text=f'Login:', width=20, height=2, font=('Arial', 8), anchor='w')
+l.grid(row=2)
+p = Label(Info, text=f'Password:', width=20, height=2, font=('Arial', 8), anchor='w')
+p.grid(row=3)
+# Удаление паролей и получение паролей
+Use = Frame()
+Use.grid(row=5, column=2)
+CodI = Entry(Use)
+CodI.grid(row=1)
+Get = Button(Use, text='Get', width=15, command=Getter)
+Get.grid(row=0)
+Delete = Button(Use, text='Delete', bg='red', width=15, command=Dell)
+Delete.grid(row=2)
 window.mainloop()
